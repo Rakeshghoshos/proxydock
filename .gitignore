@@ -1,0 +1,52 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Output of build tools and dependency caches
+dist/
+build/
+.cache/
+.vscode/
+
+# IDE settings
+*.swp
+*.swo
+*.swn
+.idea/
+.vscode/
+
+# Mac OS specific files
+.DS_Store
+
+# Debugger settings
+*.rej
+*.orig
+
+# Coverage reports from testing
+coverage/
+
+# npm lockfile
+package-lock.json
+
+# Yarn lockfile
+yarn.lock
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Temporary files
+tmp/
+temp/
+
+# Logs from pm2
+.pids/
+logs/
