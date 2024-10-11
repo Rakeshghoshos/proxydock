@@ -10,6 +10,4 @@ RUN npm install -g typescript
 
 RUN npm run build
 
-EXPOSE 8080 80
-
 CMD ["npm", "run", "start"]
