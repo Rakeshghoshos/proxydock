@@ -5,7 +5,7 @@ import router from "./conrtollers/managmentRoutes";
 import { docker } from "./core/dockerConfig";
 import httpProxy from 'http-proxy';
 
-const list = new Map();
+global.containerList = new Map();
 
 //docker event to listen containers event
 docker.getEvents((err:any,streams:any) => {
@@ -35,7 +35,7 @@ docker.getEvents((err:any,streams:any) => {
             }
 
             console.log(`${containerName}.localhost ---->  http://${containerAddress}:${defaultPort}`);
-            list.set(containerName , {containerName,containerAddress ,defaultPort});
+            global.containerList.set(containerName , {containerName,containerAddress ,defaultPort});
         }
 
         if(event.Type == 'container' && event.Action == 'start'){
@@ -54,7 +54,7 @@ docker.getEvents((err:any,streams:any) => {
             }
 
             console.log(`${containerName}.localhost ---->  http://${containerAddress}:${defaultPort}`);
-            list.set(containerName , {containerName,containerAddress ,defaultPort});
+            global.containerList.set(containerName , {containerName,containerAddress ,defaultPort});
         }
     })
 })
@@ -72,17 +72,17 @@ managementServer.use("/",router);
 const proxy = httpProxy.createProxyServer({});
 const proxyServerApp = express();
 
-proxyServerApp.use("/", (req: Request, res: Response): void => {
+proxyServerApp.use("/", (req: Request, res: Response): any => {
     const hostName = req.hostname;
     const subDomain = hostName.split(".")[0];
 
     // Check if the subdomain exists in the list
-    if (!list.has(subDomain)) {
-        res.status(404).json({ "message": "no container found" }).end(404);
+    if (!global.containerList.has(subDomain)) {
+        return res.status(404).json({ "message": "no container found" }).end(404);
     }
 
     // Get the container address and port from the list
-    const { containerAddress, defaultPort } = list.get(subDomain)!;
+    const { containerAddress, defaultPort } = global.containerList.get(subDomain)!;
 
     // Construct the target URL
     const target = `http://${containerAddress}:${defaultPort}`;
