@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title> 
+    <link rel="stylesheet" href="/public/styles.css"> 
+    <style>
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .container-row {
+            transition: background-color 0.3s;
+        }
+        .container-row:hover {
+            background-color: #f9f9f9;
+        }
+        .btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer; /* Default cursor for clickable buttons */
+    margin: 5px;
+}
+
+/* For non-clickable status indicators */
+.status-indicator {
+    color: black;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin: 5px;
+    cursor: default; /* No pointer cursor */
+    pointer-events: none; /* Prevent hover effects and pointer events */
+}
+
+/* Modify button styles */
+.btn-start {
+    background-color: #28a745; /* Green */
+    color: white;
+}
+.btn-stop {
+    background-color: #dc3545; /* Red */
+    color: white;
+}
+
+    </style>
+</head>
+<body>
+    <h1>Welcome to <%= title %></h1>
+    
+    <div>Container List</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Container Name</th>
+                <th>Access serveices Link</th>
+                <th>Image</th>
+                <th>Status</th>
+                <th>IP Address</th>
+                <th>Ports</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="containers"></tbody>
+    </table>
+
+    <br/>
+    <br/>
+    <div>Image List</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Image Name</th>
+                <th>Size</th>
+            </tr>
+        </thead>
+        <tbody id="images"></tbody>
+    </table>
+    
+    <script>
+        const fetchContainers = () => {
+            fetch('/api/listContainers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => {
+                if (response.status !== 200) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const containerDiv = document.getElementById('containers');
+                containerDiv.innerHTML = ''; // Clear previous content
+
+                if (data.data.length > 0) {
+                    data.data.forEach(container => {
+                        const containerRow = document.createElement('tr');
+                        containerRow.classList.add('container-row');
+
+                        // Create cells for each piece of information
+                        containerRow.innerHTML = `
+                                   <td>${container.Names[0]}</td>
+                                   <td>${container.Image.includes("proxydock") ? "loccalhost:8080": `${container.Names[0].substring(1)}.localhost`}</td>
+        <td>${container.Image}</td>
+        <td>${container.Status}</td>
+        <td>${container.NetworkSettings.Networks.bridge.IPAddress}</td>
+        <td>${container.Ports.map(port => `${port.PrivatePort} (${port.Type})`).join(', ')}</td>
+       <td>
+            ${!container.Image.includes("proxydock") ? 
+                `<button class="btn ${container.State === 'running' ? 'btn-stop' : 'btn-start'}" 
+                        onclick="toggleContainer('${container.Id}', '${container.State}')">
+                    ${container.State === 'running' ? 'Stop' : 'Start'}
+                </button>` 
+                : 
+                `<div class="status-indicator">
+                    ${container.State === 'running' ? 'Running' : 'Stopped'}
+                </div>`
+            }
+        </td>
+    `;
+                        containerDiv.appendChild(containerRow);
+                    });
+                } else {
+                    containerDiv.innerHTML = `<tr><td colspan="6">${data.message}</td></tr>`;
+                }
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+        };
+
+        const fetchImages = () => {
+            fetch('/api/listImages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => {
+                if (response.status !== 200) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const imagesDiv = document.getElementById('images');
+                imagesDiv.innerHTML = '';
+
+                if (data.data.length > 0) {
+                    data.data.forEach(image => {
+                        const imageRow = document.createElement('tr');
+
+                        // Create cells for each piece of information
+                        imageRow.innerHTML = `
+                            <td>${image.RepoTags[0]}</td> <!-- Assuming RepoTags contains the image name -->
+                            <td>${image.Size}</td>
+                        `;
+                        imagesDiv.appendChild(imageRow);
+                    });
+                } else {
+                    imagesDiv.innerHTML = `<tr><td colspan="2">${data.message}</td></tr>`;
+                }
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+        };
+
+        const toggleContainer = (containerId, currentState) => {
+            const action = currentState === 'running' ? 'stop' : 'start';
+            fetch(`/api/${action}Container`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ containerId })
+            })
+            .then(response => {
+                if (response.status !== 200) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.message);
+                fetchContainers(); 
+            })
+            .catch(error => {
+                console.error('There was a problem with the toggle operation:', error);
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchContainers(); 
+            fetchImages();
+        });
+    </script>
+</body>
+</html>

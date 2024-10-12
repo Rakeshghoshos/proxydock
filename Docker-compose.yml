@@ -7,7 +7,7 @@ services:
       - "8080:8080"
       - "80:80"
     network_mode: bridge
-    image: proxydock
+    image: rakeshghosh05/proxydock
     environment:
       NODE_ENV: production
     volumes:

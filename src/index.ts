@@ -4,9 +4,11 @@
     import router from "./conrtollers/managmentRoutes";
     import { docker } from "./core/dockerConfig";
     import httpProxy from 'http-proxy';
+    import path from "path";
 
     global.containerList = new Map();
 
+    
     //docker event to listen containers event
     docker.getEvents((err:any,streams:any) => {
         if(err){
@@ -65,8 +67,19 @@
     managementServer.use(express.json({ limit: '100mb' }));
     managementServer.use(express.urlencoded({ extended: false }));
     managementServer.use(cors());
-    managementServer.use("/",router);
 
+     //frontend
+     managementServer.set('view engine', 'ejs');
+     managementServer.set('views', path.join(__dirname, 'views'));
+     managementServer.use(express.static(path.join(__dirname, 'public')));
+     
+     managementServer.get('/', (req: Request, res: Response) => {
+         res.render('index', { title: 'proxydock' }); // Render index.ejs
+     });
+     
+    managementServer.use("/api",router);
+
+   
 
     //proxy server
     const proxy = httpProxy.createProxyServer({});
@@ -90,7 +103,7 @@
         console.log(`Forwarding ${hostName} to ${target}`);
 
         // Forward the request to the target
-        proxy.web(req, res, { target, changeOrigin: true }, (error) => {
+        proxy.web(req, res, { target, changeOrigin: true }, (error:any) => {
             if (error) {
                 console.error('Proxy error:', error);
                 res.status(500).json({ message: 'Proxy error occurred' });

@@ -112,8 +112,7 @@
     "types/**/*"                           // Include all TypeScript files in the src folder
   ],
   "exclude": [
-    "node_modules",                           // Exclude node_modules
-    "dist",                                   // Exclude output directory
+    "node_modules",                           // Exclude node_modules                             // Exclude output directory
     "**/*.test.ts"                            // Optionally exclude test files if needed
   ]
 }

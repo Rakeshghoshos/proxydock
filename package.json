@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsc && node dist/index.js",
-    "build": "tsc -b",
+    "build": "tsc -b && copyfiles -u 1 src/views/**/* dist/",
     "start": "tsc && node dist/index.js"
   },
   "keywords": [],
@@ -16,6 +16,7 @@
     "@types/cors": "^2.8.17",
     "cors": "^2.8.5",
     "dockerode": "^4.0.2",
+    "ejs": "^3.1.10",
     "express": "^4.21.1",
     "http-proxy": "^1.18.1"
   },
@@ -24,6 +25,7 @@
     "@types/express": "^5.0.0",
     "@types/http-proxy": "^1.17.15",
     "@types/node": "^22.7.5",
+    "copyfiles": "^2.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
   }
